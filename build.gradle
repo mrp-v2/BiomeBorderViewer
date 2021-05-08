@@ -390,13 +390,17 @@ task ensureCleanWorkingTree {
     mustRunAfter ':regenerateUpdateJson'
 }
 
-task createGitTag {
+task ensureTagExists {
     doFirst {
         Tuple2<String, String> tagResult = doCommand("git", "tag", "$version")
         if (!tagResult.second.empty)
         {
+            if (tagResult.second.contains("already exists")) {
+                return
+            }
             throw new IllegalStateException("Error creating new tag")
         }
+        throw new IllegalStateException("Tag created, rerun the task please")
     }
     mustRunAfter ':ensureCleanWorkingTree'
 }
@@ -404,7 +408,7 @@ task createGitTag {
 task publishToGithubAndCurseforge {
     dependsOn ':regenerateUpdateJson'
     dependsOn ':ensureCleanWorkingTree'
-    dependsOn ':createGitTag'
+    dependsOn ':ensureTagExists'
     dependsOn ':publishGprPublicationToGitHubPackagesRepository'
     dependsOn ':curseforge'
 }
@@ -459,8 +463,8 @@ static Tuple2<String, String> doCommand(String... command)
 }
 
 tasks.getByName('publishGprPublicationToGitHubPackagesRepository').configure {
-    mustRunAfter ':createGitTag'
+    mustRunAfter ':ensureTagExists'
 }
 tasks.getByName('curseforge').configure {
-    mustRunAfter ':createGitTag'
+    mustRunAfter ':publishGprPublicationToGitHubPackagesRepository'
 }
