@@ -174,7 +174,7 @@ public class CalculatedChunkData
         }
     }
 
-    public void drawSimilarBorder(BiomeBorderDataCollection.Drawer drawer)
+    public void drawSimilarBorders(BiomeBorderDataCollection.Drawer drawer)
     {
         for (int i = 0; i < similarXMins.length; i++)
         {

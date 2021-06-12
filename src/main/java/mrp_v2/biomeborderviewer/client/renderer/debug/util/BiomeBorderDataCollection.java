@@ -72,23 +72,17 @@ public class BiomeBorderDataCollection
     public void renderBorders(Int3[] chunksToRender, Matrix4f matrix, IVertexBuilder bufferBuilder, World world)
     {
         HashSet<Int3> chunksToQueue = new HashSet<>();
-        Drawer drawer = new Drawer(matrix, bufferBuilder);
-        drawer.setColor(VisualizeBorders.borderColor(true));
+        Drawer similarDrawer = new Drawer(matrix, bufferBuilder);
+        similarDrawer.setColor(VisualizeBorders.borderColor(true));
+        Drawer dissimilarDrawer = new Drawer(matrix, bufferBuilder);
+        dissimilarDrawer.setColor(VisualizeBorders.borderColor(false));
         for (Int3 pos : chunksToRender)
         {
             CalculatedChunkData data = calculatedChunks.get(pos);
             if (data != null)
             {
-                data.drawSimilarBorder(drawer);
-            }
-        }
-        drawer.setColor(VisualizeBorders.borderColor(false));
-        for (Int3 pos : chunksToRender)
-        {
-            CalculatedChunkData data = calculatedChunks.get(pos);
-            if (data != null)
-            {
-                data.drawDissimilarBorders(drawer);
+                data.drawSimilarBorders(similarDrawer);
+                data.drawDissimilarBorders(dissimilarDrawer);
             } else
             {
                 if (chunkReadyForCalculations(pos, world))
@@ -170,13 +164,13 @@ public class BiomeBorderDataCollection
         private final IVertexBuilder builder;
         private int r, g, b, a;
 
-        public Drawer(Matrix4f matrix, IVertexBuilder builder)
+        private Drawer(Matrix4f matrix, IVertexBuilder builder)
         {
             this.matrix = matrix;
             this.builder = builder;
         }
 
-        public void setColor(Color color)
+        private void setColor(Color color)
         {
             r = color.getRed();
             g = color.getGreen();
@@ -186,9 +180,7 @@ public class BiomeBorderDataCollection
 
         public void drawSegment(float x, float y, float z)
         {
-            builder.vertex(matrix, x, y, z);
-            builder.color(r, g, b, a);
-            builder.endVertex();
+            builder.vertex(matrix, x, y, z).color(r, g, b, a).endVertex();
         }
     }
 }

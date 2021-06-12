@@ -98,6 +98,7 @@ public class VisualizeBorders
 
     private static void renderBorders(float partialTicks, MatrixStack stack)
     {
+        Minecraft.getInstance().getProfiler().push("biome_borders");
         Entity player = Minecraft.getInstance().getCameraEntity();
         double cameraX = player.xOld + (player.getX() - player.xOld) * (double) partialTicks;
         double cameraY = player.yOld + (player.getY() - player.yOld) * (double) partialTicks +
