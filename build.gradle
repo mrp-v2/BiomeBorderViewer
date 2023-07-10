@@ -19,7 +19,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
         classpath group: 'gradle.plugin.com.matthewprenger', name: 'CurseGradle', version: '1.4.0'
     }
@@ -39,16 +39,16 @@ if (forgeVersion == 'latest' || forgeVersion == 'recommended')
 String capitalizedModId = modDisplayName.replace(' ', '')
 String modId = capitalizedModId.toLowerCase()
 String forgeMajor = forgeVersion.split('\\.')[0]
-if (minimumForgeVersion == 'none')
-{
+if (minimumForgeVersion == 'none') {
     minimumForgeVersion = forgeMajor
 }
 String homepageURL = "https://www.curseforge.com/minecraft/mc-mods/${modDisplayName.replace(' ', '-').toLowerCase()}"
 String issuesURL = "${homepageURL}/issues"
 String updateURL = "https://raw.githubusercontent.com/mrp-v2/${capitalizedModId}/master/update.json"
 
-class GithubDependency
-{
+java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+
+class GithubDependency {
     public final String githubAddress
     public final String curseforgeSlug
     public final String apiVersion
