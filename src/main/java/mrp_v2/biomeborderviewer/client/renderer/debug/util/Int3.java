@@ -1,9 +1,9 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug.util;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 
-public class Int3 extends Vector3i
+public class Int3 extends Vec3i
 {
     public Int3(int xIn, int yIn, int zIn)
     {

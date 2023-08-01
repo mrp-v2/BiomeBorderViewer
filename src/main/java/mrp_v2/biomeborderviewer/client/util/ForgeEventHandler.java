@@ -4,7 +4,7 @@ import mrp_v2.biomeborderviewer.BiomeBorderViewer;
 import mrp_v2.biomeborderviewer.client.renderer.debug.VisualizeBorders;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -31,9 +31,10 @@ import net.minecraftforge.fml.common.Mod;
         }
     }
 
-    @SubscribeEvent public static void renderEvent(RenderWorldLastEvent event)
+    @SubscribeEvent
+    public static void renderEvent(RenderLevelStageEvent event)
     {
-        VisualizeBorders.renderEvent(event.getPartialTicks(), event.getMatrixStack());
+        VisualizeBorders.renderEvent(event);
     }
 
     @SubscribeEvent(priority = EventPriority.LOW) public static void worldUnload(WorldEvent.Unload event)

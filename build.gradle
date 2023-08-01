@@ -46,7 +46,7 @@ String homepageURL = "https://www.curseforge.com/minecraft/mc-mods/${modDisplayN
 String issuesURL = "${homepageURL}/issues"
 String updateURL = "https://raw.githubusercontent.com/mrp-v2/${capitalizedModId}/master/update.json"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 class GithubDependency {
     public final String githubAddress
@@ -267,6 +267,7 @@ jar {
 jar.finalizedBy('reobfJar')
 
 processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     String tempMCVersion = mcVersion
     if (mcVersion == "1.16.5")
     {

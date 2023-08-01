@@ -1,15 +1,16 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug.util;
 
-import net.minecraft.util.Direction;
+import com.mojang.math.Vector3f;
+import net.minecraft.core.Direction;
 
 import java.util.Objects;
 
 public abstract class BorderData
 {
     private static final float offset = 1f / 0b11111111;
-    protected final Float3 min, max;
+    protected final Vector3f min, max;
 
-    protected BorderData(Float3 min, Float3 max)
+    protected BorderData(Vector3f min, Vector3f max)
     {
         this.min = min;
         this.max = max;
@@ -25,17 +26,17 @@ public abstract class BorderData
             {
                 throw new IllegalArgumentException("Incorrect arguments for border data!");
             }
-            return new X(new Float3(max.getX(), max.getY(), max.getZ()));
+            return new X(new Vector3f(max.getX(), max.getY(), max.getZ()));
         } else if (min.getY() != max.getY())
         {
             if (min.getZ() != max.getZ())
             {
                 throw new IllegalArgumentException("Incorrect arguments for border data!");
             }
-            return new Y(new Float3(max.getX(), max.getY(), max.getZ()));
+            return new Y(new Vector3f(max.getX(), max.getY(), max.getZ()));
         } else if (min.getZ() != max.getZ())
         {
-            return new Z(new Float3(max.getX(), max.getY(), max.getZ()));
+            return new Z(new Vector3f(max.getX(), max.getY(), max.getZ()));
         } else
         {
             throw new IllegalArgumentException("Incorrect arguments for border data!");
@@ -47,17 +48,11 @@ public abstract class BorderData
      */
     public static BorderData merge(BorderData a, BorderData b)
     {
-        switch (a.getAxis())
-        {
-            case X:
-                return new X(Float3.min(a.min, b.min), Float3.max(a.max, b.max));
-            case Y:
-                return new Y(Float3.min(a.min, b.min), Float3.max(a.max, b.max));
-            case Z:
-                return new Z(Float3.min(a.min, b.min), Float3.max(a.max, b.max));
-            default:
-                throw new IllegalArgumentException("Unknown axis '" + a.getAxis() + "'");
-        }
+        return switch (a.getAxis()) {
+            case X -> new X(Vec3fUtil.Min(a.min, b.min), Vec3fUtil.Max(a.max, b.max));
+            case Y -> new Y(Vec3fUtil.Min(a.min, b.min), Vec3fUtil.Max(a.max, b.max));
+            case Z -> new Z(Vec3fUtil.Min(a.min, b.min), Vec3fUtil.Max(a.max, b.max));
+        };
     }
 
     public abstract Direction.Axis getAxis();
@@ -84,7 +79,7 @@ public abstract class BorderData
         {
             return false;
         }
-        if (this.min.getValueOnAxis(mergeAxis) == other.min.getValueOnAxis(mergeAxis))
+        if (Vec3fUtil.AreValuesOnAxisEqual(this.min, other.min, mergeAxis))
         {
             return false;
         }
@@ -97,25 +92,25 @@ public abstract class BorderData
         {
             return false;
         }
-        if (this.min.getValueOnAxis(this.getAxis()) != other.min.getValueOnAxis(this.getAxis()))
+        if (!Vec3fUtil.AreValuesOnAxisEqual(this.min, other.min, this.getAxis()))
         {
             return false;
         }
-        if (this.max.getValueOnAxis(this.getAxis()) != other.max.getValueOnAxis(this.getAxis()))
+        if (!Vec3fUtil.AreValuesOnAxisEqual(this.max, other.max, this.getAxis()))
         {
             return false;
         }
         Direction.Axis otherAx1 = this.getOtherAxes()[0];
         Direction.Axis otherAx2 = this.getOtherAxes()[1];
-        if (this.min.areValuesOnAxisEqual(other.min, otherAx1) && this.max.areValuesOnAxisEqual(other.max, otherAx1))
+        if (Vec3fUtil.AreValuesOnAxisEqual(this.min, other.min, otherAx1) && Vec3fUtil.AreValuesOnAxisEqual(this.max, other.max, otherAx1))
         {
-            return this.min.areValuesOnAxisEqual(other.max, otherAx2) ||
-                    this.max.areValuesOnAxisEqual(other.min, otherAx2);
-        } else if (this.min.areValuesOnAxisEqual(other.min, otherAx2) &&
-                this.max.areValuesOnAxisEqual(other.max, otherAx2))
+            return Vec3fUtil.AreValuesOnAxisEqual(this.min, other.max, otherAx2) ||
+                    Vec3fUtil.AreValuesOnAxisEqual(this.max, other.min, otherAx2);
+        } else if (Vec3fUtil.AreValuesOnAxisEqual(this.min, other.min, otherAx2) &&
+                Vec3fUtil.AreValuesOnAxisEqual(this.max, other.max, otherAx2))
         {
-            return this.min.areValuesOnAxisEqual(other.max, otherAx1) ||
-                    this.max.areValuesOnAxisEqual(other.min, otherAx1);
+            return Vec3fUtil.AreValuesOnAxisEqual(this.min, other.max, otherAx1) ||
+                    Vec3fUtil.AreValuesOnAxisEqual(this.max, other.min, otherAx1);
         }
         return false;
     }
@@ -126,13 +121,13 @@ public abstract class BorderData
     {
         private static final Direction.Axis[] otherAxes = new Direction.Axis[]{Direction.Axis.Y, Direction.Axis.Z};
 
-        protected X(Float3 float3)
+        protected X(Vector3f float3)
         {
-            super(float3.addOnAxis(-offset, Direction.Axis.X),
-                    float3.addOnAxis(offset, Direction.Axis.X).addOnOtherAxes(1.0F, Direction.Axis.X));
+            super(Vec3fUtil.AddOnAxis(float3, -offset, Direction.Axis.X),
+                    Vec3fUtil.AddOnOtherAxes(Vec3fUtil.AddOnAxis(float3, offset, Direction.Axis.X), 1.0F, Direction.Axis.X));
         }
 
-        public X(Float3 min, Float3 max)
+        public X(Vector3f min, Vector3f max)
         {
             super(min, max);
         }
@@ -148,11 +143,10 @@ public abstract class BorderData
             {
                 return true;
             }
-            if (!(o instanceof X))
+            if (!(o instanceof X other))
             {
                 return false;
             }
-            X other = (X) o;
             return super.equals(other);
         }
 
@@ -166,13 +160,13 @@ public abstract class BorderData
     {
         private static final Direction.Axis[] otherAxes = new Direction.Axis[]{Direction.Axis.X, Direction.Axis.Z};
 
-        protected Y(Float3 float3)
+        protected Y(Vector3f float3)
         {
-            super(float3.addOnAxis(-offset, Direction.Axis.Y),
-                    float3.addOnAxis(offset, Direction.Axis.Y).addOnOtherAxes(1.0F, Direction.Axis.Y));
+            super(Vec3fUtil.AddOnAxis(float3, -offset, Direction.Axis.Y),
+                    Vec3fUtil.AddOnOtherAxes(Vec3fUtil.AddOnAxis(float3, 1.0F, Direction.Axis.Y), offset, Direction.Axis.Y));
         }
 
-        public Y(Float3 min, Float3 max)
+        public Y(Vector3f min, Vector3f max)
         {
             super(min, max);
         }
@@ -188,11 +182,10 @@ public abstract class BorderData
             {
                 return true;
             }
-            if (!(o instanceof Y))
+            if (!(o instanceof Y other))
             {
                 return false;
             }
-            Y other = (Y) o;
             return super.equals(other);
         }
 
@@ -206,13 +199,13 @@ public abstract class BorderData
     {
         private static final Direction.Axis[] otherAxes = new Direction.Axis[]{Direction.Axis.X, Direction.Axis.Y};
 
-        protected Z(Float3 float3)
+        protected Z(Vector3f float3)
         {
-            super(float3.addOnAxis(-offset, Direction.Axis.Z),
-                    float3.addOnAxis(offset, Direction.Axis.Z).addOnOtherAxes(1.0F, Direction.Axis.Z));
+            super(Vec3fUtil.AddOnAxis(float3, -offset, Direction.Axis.Z),
+                    Vec3fUtil.AddOnAxis(Vec3fUtil.AddOnOtherAxes(float3, 1.0F, Direction.Axis.Z), offset, Direction.Axis.Z));
         }
 
-        public Z(Float3 min, Float3 max)
+        public Z(Vector3f min, Vector3f max)
         {
             super(min, max);
         }
@@ -228,11 +221,10 @@ public abstract class BorderData
             {
                 return true;
             }
-            if (!(o instanceof Z))
+            if (!(o instanceof Z other))
             {
                 return false;
             }
-            Z other = (Z) o;
             return super.equals(other);
         }
 

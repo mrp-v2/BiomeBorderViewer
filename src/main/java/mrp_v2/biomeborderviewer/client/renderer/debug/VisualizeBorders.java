@@ -1,21 +1,20 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import mrp_v2.biomeborderviewer.client.Config;
-import mrp_v2.biomeborderviewer.client.renderer.BiomeBorderRenderType;
 import mrp_v2.biomeborderviewer.client.renderer.debug.util.BiomeBorderDataCollection;
 import mrp_v2.biomeborderviewer.client.renderer.debug.util.Int3;
 import mrp_v2.biomeborderviewer.util.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.chunk.ChunkStatus;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import org.apache.logging.log4j.LogManager;
 
 import java.awt.*;
@@ -40,9 +39,9 @@ public class VisualizeBorders
         }
     }
 
-    public static void chunkLoad(IWorld world, ChunkPos chunkPos)
+    public static void chunkLoad(LevelAccessor world, ChunkPos chunkPos)
     {
-        if (!(world instanceof ClientWorld))
+        if (!(world instanceof ClientLevel))
         {
             return;
         }
@@ -56,9 +55,9 @@ public class VisualizeBorders
         }
     }
 
-    public static void chunkUnload(IWorld world, ChunkPos chunkPos)
+    public static void chunkUnload(LevelAccessor world, ChunkPos chunkPos)
     {
-        if (!(world instanceof ClientWorld))
+        if (!(world instanceof ClientLevel))
         {
             return;
         }
@@ -77,7 +76,7 @@ public class VisualizeBorders
         showingBorders = !showingBorders;
         LogManager.getLogger().debug("Show Borders hotkey pressed, showingBorders is now " + showingBorders);
         Minecraft.getInstance().player
-                .sendMessage(new StringTextComponent("Showing borders is now " + showingBorders), UUID.randomUUID());
+                .sendMessage(new TextComponent("Showing borders is now " + showingBorders), UUID.randomUUID());
     }
 
     public static void loadConfigSettings()
@@ -88,38 +87,44 @@ public class VisualizeBorders
         COLOR_B = Config.getColorB();
     }
 
-    public static void renderEvent(float partialTicks, MatrixStack matrixStack)
+    public static void renderEvent(RenderLevelStageEvent event)
     {
-        if (showingBorders)
-        {
-            renderBorders(partialTicks, matrixStack);
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) {
+            if (showingBorders) {
+                renderBorders(event);
+            }
         }
     }
 
-    private static void renderBorders(float partialTicks, MatrixStack stack)
+    private static void renderBorders(RenderLevelStageEvent event)
     {
+        PoseStack poseStack = RenderSystem.getModelViewStack();
+        poseStack.pushPose();
+        poseStack.mulPoseMatrix(event.getPoseStack().last().pose());
+        RenderSystem.applyModelViewMatrix();
         Minecraft.getInstance().getProfiler().push("biome_borders");
-        Entity player = Minecraft.getInstance().getCameraEntity();
-        double cameraX = player.xOld + (player.getX() - player.xOld) * (double) partialTicks;
-        double cameraY = player.yOld + (player.getY() - player.yOld) * (double) partialTicks +
-                player.getEyeHeight(player.getPose());
-        double cameraZ = player.zOld + (player.getZ() - player.zOld) * (double) partialTicks;
-        Vector3d playerPos = new Vector3d(cameraX, cameraY, cameraZ);
-        IVertexBuilder builder = Minecraft.getInstance().renderBuffers().bufferSource()
-                .getBuffer(BiomeBorderRenderType.getBiomeBorder());
-        stack.pushPose();
-        stack.translate(-playerPos.x, -playerPos.y, -playerPos.z);
-        Matrix4f matrix = stack.last().pose();
+        RenderSystem.enableDepthTest();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder bufferBuilder = tesselator.getBuilder();
+        RenderSystem.disableTexture();
+        RenderSystem.disableBlend();
+        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        Vec3 playerPos = event.getCamera().getPosition();
         biomeBorderData.renderBorders(Util.getChunkColumn(horizontalViewRange, verticalViewRange,
-                new Int3((int) (playerPos.x / 16), (int) (playerPos.y / 16), (int) (playerPos.z / 16))), matrix,
-                builder, player.level);
-        stack.popPose();
-        Minecraft.getInstance().renderBuffers().bufferSource().endBatch(BiomeBorderRenderType.getBiomeBorder());
+                        new Int3((int) (playerPos.x / 16), (int) (playerPos.y / 16), (int) (playerPos.z / 16))),
+                bufferBuilder, event.getCamera().getEntity().getLevel(), event.getCamera().getPosition().x, event.getCamera().getPosition().y, event.getCamera().getPosition().z);
+        tesselator.end();
+        RenderSystem.enableBlend();
+        RenderSystem.enableTexture();
+        Minecraft.getInstance().getProfiler().pop();
+        poseStack.popPose();
+        RenderSystem.applyModelViewMatrix();
     }
 
-    public static void worldUnload(IWorld world)
+    public static void worldUnload(LevelAccessor world)
     {
-        if (!(world instanceof ClientWorld))
+        if (!(world instanceof ClientLevel))
         {
             return;
         }

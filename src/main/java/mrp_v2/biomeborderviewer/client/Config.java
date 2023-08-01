@@ -8,7 +8,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 
@@ -104,13 +104,15 @@ public class Config
                 CLIENT.borderB_A.get());
     }
 
-    @SubscribeEvent public static void onFileChange(final ModConfig.Reloading configEvent)
+    @SubscribeEvent
+    public static void onFileChange(final ModConfigEvent.Reloading configEvent)
     {
         LogManager.getLogger().debug(BiomeBorderViewer.DISPLAY_NAME + " config just got changed on the file system!");
         VisualizeBorders.loadConfigSettings();
     }
 
-    @SubscribeEvent public static void onLoad(final ModConfig.Loading configEvent)
+    @SubscribeEvent
+    public static void onLoad(final ModConfigEvent.Loading configEvent)
     {
         LogManager.getLogger().debug("Loaded " + BiomeBorderViewer.DISPLAY_NAME + " config file {}",
                 configEvent.getConfig().getFileName());

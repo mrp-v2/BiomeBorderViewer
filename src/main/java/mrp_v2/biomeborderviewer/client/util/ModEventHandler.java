@@ -3,8 +3,8 @@ package mrp_v2.biomeborderviewer.client.util;
 import mrp_v2.biomeborderviewer.BiomeBorderViewer;
 import mrp_v2.biomeborderviewer.client.renderer.BiomeBorderRenderType;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
