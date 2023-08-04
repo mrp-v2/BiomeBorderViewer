@@ -20,57 +20,48 @@ import org.apache.logging.log4j.LogManager;
 import java.awt.*;
 import java.util.UUID;
 
-public class VisualizeBorders
-{
+public class VisualizeBorders {
     private static Color COLOR_A;
     private static Color COLOR_B;
     private static boolean showingBorders;
     private static int horizontalViewRange, verticalViewRange;
     private static BiomeBorderDataCollection biomeBorderData = new BiomeBorderDataCollection();
+    public static int MIN_CHUNK_Y = -4;
+    public static int MAX_CHUNK_Y = 15;
+    public static int MIN_BLOCK_Y = 16 * MIN_CHUNK_Y;
+    public static int MAX_BLOCK_Y = 15 + 16 * MAX_CHUNK_Y;
 
-    public static Color borderColor(boolean isSimilar)
-    {
-        if (isSimilar)
-        {
+    public static Color borderColor(boolean isSimilar) {
+        if (isSimilar) {
             return COLOR_A;
-        } else
-        {
+        } else {
             return COLOR_B;
         }
     }
 
-    public static void chunkLoad(LevelAccessor world, ChunkPos chunkPos)
-    {
-        if (!(world instanceof ClientLevel))
-        {
+    public static void chunkLoad(LevelAccessor world, ChunkPos chunkPos) {
+        if (!(world instanceof ClientLevel)) {
             return;
         }
-        if (world.getChunk(chunkPos.x, chunkPos.z).getStatus() != ChunkStatus.FULL)
-        {
+        if (world.getChunk(chunkPos.x, chunkPos.z).getStatus() != ChunkStatus.FULL) {
             return;
         }
-        for (int y = 0; y < 16; y++)
-        {
+        for (int y = MIN_CHUNK_Y; y <= MAX_CHUNK_Y; y++) {
             biomeBorderData.chunkLoaded(new Int3(chunkPos.x, y, chunkPos.z));
         }
     }
 
-    public static void chunkUnload(LevelAccessor world, ChunkPos chunkPos)
-    {
-        if (!(world instanceof ClientLevel))
-        {
+    public static void chunkUnload(LevelAccessor world, ChunkPos chunkPos) {
+        if (!(world instanceof ClientLevel)) {
             return;
         }
-        for (int y = 0; y < 16; y++)
-        {
+        for (int y = MIN_CHUNK_Y; y <= MAX_CHUNK_Y; y++) {
             biomeBorderData.chunkUnloaded(new Int3(chunkPos.x, y, chunkPos.z));
         }
     }
 
-    public static void bordersKeyPressed()
-    {
-        if (biomeBorderData.areNoChunksLoaded())
-        {
+    public static void bordersKeyPressed() {
+        if (biomeBorderData.areNoChunksLoaded()) {
             return;
         }
         showingBorders = !showingBorders;
@@ -79,16 +70,14 @@ public class VisualizeBorders
                 .sendMessage(new TextComponent("Showing borders is now " + showingBorders), UUID.randomUUID());
     }
 
-    public static void loadConfigSettings()
-    {
+    public static void loadConfigSettings() {
         horizontalViewRange = Config.CLIENT.horizontalViewRange.get();
         verticalViewRange = Config.CLIENT.verticalViewRange.get();
         COLOR_A = Config.getColorA();
         COLOR_B = Config.getColorB();
     }
 
-    public static void renderEvent(RenderLevelStageEvent event)
-    {
+    public static void renderEvent(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) {
             if (showingBorders) {
                 renderBorders(event);
@@ -96,8 +85,7 @@ public class VisualizeBorders
         }
     }
 
-    private static void renderBorders(RenderLevelStageEvent event)
-    {
+    private static void renderBorders(RenderLevelStageEvent event) {
         PoseStack poseStack = RenderSystem.getModelViewStack();
         poseStack.pushPose();
         poseStack.mulPoseMatrix(event.getPoseStack().last().pose());
@@ -110,9 +98,9 @@ public class VisualizeBorders
         RenderSystem.disableTexture();
         RenderSystem.disableBlend();
         bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        Vec3 playerPos = event.getCamera().getPosition();
+        Vec3 cameraPos = event.getCamera().getPosition();
         biomeBorderData.renderBorders(Util.getChunkColumn(horizontalViewRange, verticalViewRange,
-                        new Int3((int) (playerPos.x / 16), (int) (playerPos.y / 16), (int) (playerPos.z / 16))),
+                        new Int3((int) Math.floor(cameraPos.x / 16), (int) Math.floor(cameraPos.y / 16), (int) Math.floor(cameraPos.z / 16))),
                 bufferBuilder, event.getCamera().getEntity().getLevel(), event.getCamera().getPosition().x, event.getCamera().getPosition().y, event.getCamera().getPosition().z);
         tesselator.end();
         RenderSystem.enableBlend();
@@ -122,10 +110,8 @@ public class VisualizeBorders
         RenderSystem.applyModelViewMatrix();
     }
 
-    public static void worldUnload(LevelAccessor world)
-    {
-        if (!(world instanceof ClientLevel))
-        {
+    public static void worldUnload(LevelAccessor world) {
+        if (!(world instanceof ClientLevel)) {
             return;
         }
         biomeBorderData.worldUnloaded();

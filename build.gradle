@@ -57,8 +57,7 @@ class GithubDependency {
     public final String modId
     public final String modNamespace
 
-    GithubDependency(String data)
-    {
+    GithubDependency(String data) {
         int seperator1 = data.indexOf('|'), seperator2 = data.indexOf(':'), seperator3 = data.indexOf(',')
         githubAddress = data.substring(0, seperator1)
         curseforgeSlug = data.substring(seperator1 + 1, seperator2)
@@ -72,16 +71,13 @@ class GithubDependency {
         modNamespace = githubAddress.substring(0, githubAddress.indexOf('/')).replace('-', '_')
     }
 
-    static List<GithubDependency> makeGithubDependencyList(String githubDependencies)
-    {
-        if (!githubDependencies.contains(';'))
-        {
+    static List<GithubDependency> makeGithubDependencyList(String githubDependencies) {
+        if (!githubDependencies.contains(';')) {
             return new ArrayList<GithubDependency>()
         }
         String[] dependenciesArray = githubDependencies.split(';')
         List<GithubDependency> dependencyList = new ArrayList<>()
-        for (String dependencyStr : dependenciesArray)
-        {
+        for (String dependencyStr : dependenciesArray) {
             dependencyList.add(new GithubDependency(dependencyStr))
         }
         return dependencyList
@@ -89,36 +85,30 @@ class GithubDependency {
 }
 
 List<GithubDependency> githubDependencyList = GithubDependency.makeGithubDependencyList(githubDependencies)
-for (GithubDependency dependency : githubDependencyList)
-{
+for (GithubDependency dependency : githubDependencyList) {
     println('Added GitHub dependency: ' + dependency.githubAddress + ", Version: " + dependency.apiVersion +
             dependency.patchVersion + ", Next API Version: " + dependency.nextAPIVersion)
 }
 
-class CurseforgeDependency
-{
+class CurseforgeDependency {
     public final String curseforgeSlug
     public final String projectId
     public final String fileId
 
-    CurseforgeDependency(String data)
-    {
+    CurseforgeDependency(String data) {
         int seperator1 = data.indexOf('|'), seperator2 = data.indexOf(':')
         curseforgeSlug = data.substring(0, seperator1)
         projectId = data.substring(seperator1 + 1, seperator2)
         fileId = data.substring(seperator2 + 1)
     }
 
-    static List<CurseforgeDependency> makeCurseforgeDependencyList(String curseforgeDependencies)
-    {
-        if (!curseforgeDependencies.contains(';'))
-        {
+    static List<CurseforgeDependency> makeCurseforgeDependencyList(String curseforgeDependencies) {
+        if (!curseforgeDependencies.contains(';')) {
             return new ArrayList<CurseforgeDependency>()
         }
         String[] dependenciesArray = curseforgeDependencies.split(';')
         List<CurseforgeDependency> dependencyList = new ArrayList<>()
-        for (String dependencyStr : dependenciesArray)
-        {
+        for (String dependencyStr : dependenciesArray) {
             dependencyList.add(new CurseforgeDependency(dependencyStr))
         }
         return dependencyList
@@ -127,8 +117,7 @@ class CurseforgeDependency
 
 List<CurseforgeDependency> curseforgeDependencyList =
         CurseforgeDependency.makeCurseforgeDependencyList(curseforgeDependencies)
-for (CurseforgeDependency dependency : curseforgeDependencyList)
-{
+for (CurseforgeDependency dependency : curseforgeDependencyList) {
     println('Added Curseforge dependency: ' + dependency.curseforgeSlug)
 }
 
@@ -149,15 +138,13 @@ minecraft {
     mappings channel: mapping.split('\\|')[0], version: mapping.split('\\|')[1]
     String accessTransformerPath = 'src/main/resources/META-INF/accesstransformer.cfg'
     File accessTransformerFile = file(accessTransformerPath)
-    if (accessTransformerFile.exists())
-    {
+    if (accessTransformerFile.exists()) {
         println 'Access transformer configuration found at ' + accessTransformerPath
         accessTransformer = accessTransformerFile
     }
     runs {
         client {
-            if (usesMixins)
-            {
+            if (usesMixins) {
                 property 'mixin.env.disableRefMap', 'true'
                 arg "-mixin.config=" + archivesBaseName + ".mixins.json"
             }
@@ -171,8 +158,7 @@ minecraft {
             }
         }
         server {
-            if (usesMixins)
-            {
+            if (usesMixins) {
                 property 'mixin.env.disableRefMap', 'true'
                 arg "-mixin.config=" + archivesBaseName + ".mixins.json"
             }
@@ -186,8 +172,7 @@ minecraft {
             }
         }
         data {
-            if (usesMixins)
-            {
+            if (usesMixins) {
                 property 'mixin.env.disableRefMap', 'true'
                 arg "-mixin.config=" + archivesBaseName + ".mixins.json"
             }
@@ -196,8 +181,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
             String[] tempArgs = ['--mod', modId, '--all', '--output', file('src/generated/resources/'), '--existing',
                                  sourceSets.main.output.resourcesDir]
-            for (GithubDependency dependency : githubDependencyList)
-            {
+            for (GithubDependency dependency : githubDependencyList) {
                 tempArgs += '--existing-mod'
                 tempArgs += dependency.modId
             }
@@ -212,15 +196,13 @@ minecraft {
 }
 
 repositories {
-    for (GithubDependency dependency : githubDependencyList)
-    {
+    for (GithubDependency dependency : githubDependencyList) {
         maven {
             name = dependency.githubAddress
             url = new URL('https://maven.pkg.github.com/' + dependency.githubAddress)
             credentials {
                 username = 'mrp-v2'
-                if (secretFile.exists())
-                {
+                if (secretFile.exists()) {
                     password = new JsonSlurper().parse(secretFile).get('github-packages-token')
                 }
             }
@@ -235,13 +217,11 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${mcVersion}-${forgeVersion}"
-    for (GithubDependency dependency : githubDependencyList)
-    {
+    for (GithubDependency dependency : githubDependencyList) {
         compile fg.deobf(dependency.modNamespace + '.' + dependency.modId + ':' + dependency.modId + ':' +
                 dependency.apiVersion + dependency.patchVersion)
     }
-    for (CurseforgeDependency dependency : curseforgeDependencyList)
-    {
+    for (CurseforgeDependency dependency : curseforgeDependencyList) {
         compile fg.deobf("curse.maven:${dependency.curseforgeSlug}-${dependency.projectId}:${dependency.fileId}")
     }
 }
@@ -256,8 +236,7 @@ jar {
                 'Implementation-Version': "${version}",
                 'Implementation-Vendor': author,
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"))
-        if (usesMixins)
-        {
+        if (usesMixins) {
             map.putAll('MixinConfigs': "${modId}.mixins.json")
         }
         attributes(map)
@@ -267,10 +246,9 @@ jar {
 jar.finalizedBy('reobfJar')
 
 processResources {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
     String tempMCVersion = mcVersion
-    if (mcVersion == "1.16.5")
-    {
+    if (mcVersion == "1.16.5") {
         tempMCVersion = "1.16.4"
     }
     inputs.property 'version', project.version
@@ -286,8 +264,7 @@ processResources {
     inputs.property 'updateURL', updateURL
     inputs.property 'issuesURL', issuesURL
     String githubDependenciesData = ''
-    for (GithubDependency dependency : githubDependencyList)
-    {
+    for (GithubDependency dependency : githubDependencyList) {
         githubDependenciesData +=
                 "[[dependencies.${modId}]]\n" + "    modId=\"${dependency.modId}\"\n" + '    mandatory=true\n' +
                         "    versionRange=\"[${dependency.apiVersion},${dependency.nextAPIVersion})\"\n" +
@@ -324,8 +301,7 @@ publishing {
             url = uri('https://maven.pkg.github.com/mrp-v2/' + capitalizedModId)
             credentials {
                 username = 'mrp-v2'
-                if (secretFile.exists())
-                {
+                if (secretFile.exists()) {
                     password = new JsonSlurper().parse(secretFile).get('github-packages-token')
                 }
             }
@@ -349,20 +325,21 @@ task regenerateUpdateJson {
         JsonObject promos = new JsonObject()
         newUpdateJson.add('promos', promos)
         File oldUpdateJsonFile = new File(updateJsonLocation)
-        if (oldUpdateJsonFile.exists())
-        {
+        String latestTargetMCVersion = mcVersion
+        if (oldUpdateJsonFile.exists()) {
             JsonObject oldUpdateJson = new JsonParser().
                     parse(new File(updateJsonLocation).text).getAsJsonObject().
                     getAsJsonObject('promos')
-            for (Map.Entry<String, JsonElement> entry : oldUpdateJson.entrySet())
-            {
+            for (Map.Entry<String, JsonElement> entry : oldUpdateJson.entrySet()) {
                 promos.addProperty(entry.key, entry.value.asString)
+                if (entry.key.equals("latest")) {
+                    latestTargetMCVersion = entry.value.asString.substring(0, entry.value.asString.indexOf("-"))
+                }
             }
         }
         promos.addProperty("${mcVersion}-recommended", (String) version)
         promos.addProperty("${mcVersion}-latest", (String) version)
-        if (mcVersion == new JsonSlurper().parse(secretFile).get('latest-mc-version'))
-        {
+        if (mcVersion >= latestTargetMCVersion) {
             promos.addProperty("recommended", (String) version)
             promos.addProperty("latest", (String) version)
         }
@@ -371,8 +348,7 @@ task regenerateUpdateJson {
     }
 }
 
-if (usesMixins)
-{
+if (usesMixins) {
     apply plugin: 'org.spongepowered.mixin'
 
     mixin {
@@ -383,8 +359,7 @@ if (usesMixins)
 task ensureCleanWorkingTree {
     doFirst {
         Tuple2<String, String> statusResult = doCommand("git", "status")
-        if (!statusResult.first.contains("working tree clean"))
-        {
+        if (!statusResult.first.contains("working tree clean")) {
             throw new IllegalStateException("The working tree isn't clean")
         }
     }
@@ -394,8 +369,7 @@ task ensureCleanWorkingTree {
 task ensureTagExists {
     doFirst {
         Tuple2<String, String> tagResult = doCommand("git", "tag", "$version")
-        if (!tagResult.second.empty)
-        {
+        if (!tagResult.second.empty) {
             if (tagResult.second.contains("already exists")) {
                 return
             }
@@ -415,8 +389,7 @@ task publishToGithubAndCurseforge {
 }
 
 curseforge {
-    if (secretFile.exists())
-    {
+    if (secretFile.exists()) {
         apiKey = new JsonSlurper().parse(secretFile).get('curseforge-api-token')
     }
     project {
@@ -432,15 +405,12 @@ curseforge {
         changelog = changelogResult.first
         releaseType = 'release'
         addGameVersion mcVersion
-        if (githubDependencyList.size() > 0 || curseforgeDependencyList.size() > 0)
-        {
+        if (githubDependencyList.size() > 0 || curseforgeDependencyList.size() > 0) {
             relations {
-                for (GithubDependency dependency : githubDependencyList)
-                {
+                for (GithubDependency dependency : githubDependencyList) {
                     requiredDependency dependency.curseforgeSlug
                 }
-                for (CurseforgeDependency dependency : curseforgeDependencyList)
-                {
+                for (CurseforgeDependency dependency : curseforgeDependencyList) {
                     requiredDependency dependency.curseforgeSlug
                 }
             }
@@ -454,8 +424,7 @@ curseforge {
     }
 }
 
-static Tuple2<String, String> doCommand(String... command)
-{
+static Tuple2<String, String> doCommand(String... command) {
     Process commandProcess = command.execute()
     StringBuilder out = new StringBuilder(), error = new StringBuilder()
     commandProcess.consumeProcessOutput(out, error)
