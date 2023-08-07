@@ -1,4 +1,0 @@
-@ParametersAreNonnullByDefault
-package mrp_v2.biomeborderviewer.client;
-
-import javax.annotation.ParametersAreNonnullByDefault;
