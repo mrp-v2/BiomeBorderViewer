@@ -2,7 +2,6 @@ package mrp_v2.biomeborderviewer.client.renderer.debug.util;
 
 import com.mojang.math.Vector3f;
 import mrp_v2.biomeborderviewer.client.renderer.debug.VisualizeBorders;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
@@ -24,7 +23,7 @@ public class CalculatedChunkData {
         for (y = yOrigin; y < yOrigin + 16; y++) {
             for (x = xOrigin; x < xOrigin + 16; x++) {
                 for (z = zOrigin; z < zOrigin + 16; z += 2) {
-                    if (z == zOrigin && Math.abs((xOrigin + x) % 2) == (y % 2)) {
+                    if (z == zOrigin && Math.abs(x % 2) == Math.abs(y % 2)) {
                         z++;
                     }
                     mainPos = new Int3(x, y, z);
@@ -106,30 +105,7 @@ public class CalculatedChunkData {
         this.dissimilarZMaxs = dissimilarZMaxs.toArray(new Vector3f[0]);
     }
 
-    private static void combineVerticalBorders(ArrayList<BorderData> borders) {
-        boolean didSomething = false;
-        BorderData borderA, borderB;
-        Loop1:
-        for (int i1 = 0; i1 < borders.size() - 1; i1++) {
-            borderA = borders.get(i1);
-            for (int i2 = i1 + 1; i2 < borders.size(); i2++) {
-                borderB = borders.get(i2);
-                if (borderA.canMergeOnAxis(borderB, Direction.Axis.Y)) {
-                    borders.remove(i2);
-                    borders.remove(i1);
-                    borders.add(i1, BorderData.merge(borderA, borderB));
-                    didSomething = true;
-                    continue Loop1;
-                }
-            }
-        }
-        if (didSomething) {
-            combineVerticalBorders(borders);
-        }
-    }
-
     private static void simplifyBorders(ArrayList<BorderData> borders) {
-        combineVerticalBorders(borders);
         boolean didSomething = false;
         BorderData borderA, borderB;
         Loop1:
