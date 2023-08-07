@@ -163,7 +163,7 @@ public abstract class BorderData
         protected Y(Vector3f float3)
         {
             super(Vec3fUtil.AddOnAxis(float3, -offset, Direction.Axis.Y),
-                    Vec3fUtil.AddOnOtherAxes(Vec3fUtil.AddOnAxis(float3, 1.0F, Direction.Axis.Y), offset, Direction.Axis.Y));
+                    Vec3fUtil.AddOnOtherAxes(Vec3fUtil.AddOnAxis(float3, offset, Direction.Axis.Y), 1.0F, Direction.Axis.Y));
         }
 
         public Y(Vector3f min, Vector3f max)
@@ -202,7 +202,7 @@ public abstract class BorderData
         protected Z(Vector3f float3)
         {
             super(Vec3fUtil.AddOnAxis(float3, -offset, Direction.Axis.Z),
-                    Vec3fUtil.AddOnAxis(Vec3fUtil.AddOnOtherAxes(float3, 1.0F, Direction.Axis.Z), offset, Direction.Axis.Z));
+                    Vec3fUtil.AddOnOtherAxes(Vec3fUtil.AddOnAxis(float3, offset, Direction.Axis.Z), 1.0F, Direction.Axis.Z));
         }
 
         public Z(Vector3f min, Vector3f max)
