@@ -4,8 +4,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import mrp_v2.biomeborderviewer.client.Config;
 import mrp_v2.biomeborderviewer.client.renderer.debug.VisualizeBorders;
 import mrp_v2.biomeborderviewer.util.Util;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.dimension.DimensionType;
 
 import javax.annotation.Nullable;
 import java.awt.*;
@@ -22,7 +24,7 @@ public class BiomeBorderDataCollection {
     /**
      * Does not need synchronization
      */
-    private final HashSet<Int3> loadedChunks;
+    private final HashSet<ChunkPos> loadedChunks;
     /**
      * Needs synchronization, use this as a lock
      */
@@ -33,22 +35,29 @@ public class BiomeBorderDataCollection {
     private final HashSet<Int3> chunksQueuedForCalculation;
     @Nullable
     private ExecutorService threadPool;
+    private final int minChunkY;
+    private final int maxChunkY;
 
-    public BiomeBorderDataCollection() {
+    public BiomeBorderDataCollection(DimensionType dimensionType) {
         this.calculatedChunks = new HashMap<>();
         this.calculatedChunksToAdd = new HashMap<>();
         this.chunksQueuedForCalculation = new HashSet<>();
         this.loadedChunks = new HashSet<>();
         this.threadPool = null;
+        minChunkY = dimensionType.minY() / 16;
+        int maxY = dimensionType.minY() + dimensionType.height() - 1;
+        maxChunkY = maxY / 16 - 1;
     }
 
-    public void chunkLoaded(Int3 pos) {
+    public void chunkLoaded(ChunkPos pos) {
         loadedChunks.add(pos);
     }
 
-    public void chunkUnloaded(Int3 pos) {
+    public void chunkUnloaded(ChunkPos pos) {
         loadedChunks.remove(pos);
-        calculatedChunks.remove(pos);
+        for (int y = minChunkY; y <= maxChunkY; y++) {
+            calculatedChunks.remove(new Int3(pos.x, y, pos.z));
+        }
     }
 
     public void chunkCalculated(Int3 pos, CalculatedChunkData data) {
@@ -83,15 +92,17 @@ public class BiomeBorderDataCollection {
     }
 
     private boolean chunkReadyForCalculations(Int3 pos, Level world) {
-        if (!loadedChunks.contains(pos)) {
+        ChunkPos chunkPos = new ChunkPos(pos.getX(), pos.getZ());
+        if (!loadedChunks.contains(chunkPos)) {
             return false;
         }
         if (world.getChunk(pos.getX(), pos.getZ()).getStatus() != ChunkStatus.FULL) {
             return false;
         }
         for (Int3 neighbor : Util.getNeighborChunks(pos)) {
-            if (!loadedChunks.contains(neighbor)) {
-                if (neighbor.getY() < VisualizeBorders.MIN_CHUNK_Y || neighbor.getY() > VisualizeBorders.MAX_CHUNK_Y) {
+            chunkPos = new ChunkPos(neighbor.getX(), neighbor.getZ());
+            if (!loadedChunks.contains(chunkPos)) {
+                if (neighbor.getY() < minChunkY || neighbor.getY() > maxChunkY) {
                     continue;
                 }
                 return false;

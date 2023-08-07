@@ -1,7 +1,6 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug.util;
 
 import com.mojang.math.Vector3f;
-import mrp_v2.biomeborderviewer.client.renderer.debug.VisualizeBorders;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
@@ -14,6 +13,7 @@ public class CalculatedChunkData {
     public CalculatedChunkData(Int3 pos, Level world) {
         int xOrigin = pos.getX() * 16, yOrigin = pos.getY() * 16, zOrigin = pos.getZ() * 16;
         int x, z, y;
+        int minY = world.dimensionType().minY(), maxY = minY + world.dimensionType().height() - 1;
         Int3 mainPos;
         Biome mainBiome, neighborBiome;
         Int3[] neighbors = new Int3[6];
@@ -35,7 +35,7 @@ public class CalculatedChunkData {
                     neighbors[4] = mainPos.add(0, 0, 1);
                     neighbors[5] = mainPos.add(0, 0, -1);
                     for (Int3 neighborPos : neighbors) {
-                        if (neighborPos.getY() < VisualizeBorders.MIN_BLOCK_Y || neighborPos.getY() > VisualizeBorders.MAX_BLOCK_Y) {
+                        if (neighborPos.getY() < minY || neighborPos.getY() > maxY) {
                             continue;
                         }
                         neighborBiome = world.getBiome(neighborPos.toBlockPos()).value();

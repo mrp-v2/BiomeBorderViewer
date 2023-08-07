@@ -26,11 +26,7 @@ public class VisualizeBorders {
     private static Color COLOR_B;
     private static boolean showingBorders;
     private static int horizontalViewRange, verticalViewRange;
-    private static BiomeBorderDataCollection biomeBorderData = new BiomeBorderDataCollection();
-    public static int MIN_CHUNK_Y = -4;
-    public static int MAX_CHUNK_Y = 15;
-    public static int MIN_BLOCK_Y = 16 * MIN_CHUNK_Y;
-    public static int MAX_BLOCK_Y = 15 + 16 * MAX_CHUNK_Y;
+    private static BiomeBorderDataCollection biomeBorderData;
 
     public static Color borderColor(boolean isSimilar) {
         if (isSimilar) {
@@ -47,18 +43,14 @@ public class VisualizeBorders {
         if (world.getChunk(chunkPos.x, chunkPos.z).getStatus() != ChunkStatus.FULL) {
             return;
         }
-        for (int y = MIN_CHUNK_Y; y <= MAX_CHUNK_Y; y++) {
-            biomeBorderData.chunkLoaded(new Int3(chunkPos.x, y, chunkPos.z));
-        }
+        biomeBorderData.chunkLoaded(chunkPos);
     }
 
     public static void chunkUnload(LevelAccessor world, ChunkPos chunkPos) {
         if (!(world instanceof ClientLevel)) {
             return;
         }
-        for (int y = MIN_CHUNK_Y; y <= MAX_CHUNK_Y; y++) {
-            biomeBorderData.chunkUnloaded(new Int3(chunkPos.x, y, chunkPos.z));
-        }
+        biomeBorderData.chunkUnloaded(chunkPos);
     }
 
     public static void bordersKeyPressed() {
@@ -118,6 +110,9 @@ public class VisualizeBorders {
             return;
         }
         biomeBorderData.worldUnloaded();
-        biomeBorderData = new BiomeBorderDataCollection();
+    }
+
+    public static void worldLoad(LevelAccessor world) {
+        biomeBorderData = new BiomeBorderDataCollection(world.dimensionType());
     }
 }

@@ -11,34 +11,37 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = BiomeBorderViewer.ID) public class ForgeEventHandler
-{
-    @SubscribeEvent(priority = EventPriority.LOW) public static void chunkLoad(ChunkEvent.Load event)
-    {
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = BiomeBorderViewer.ID)
+public class ForgeEventHandler {
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void chunkLoad(ChunkEvent.Load event) {
         VisualizeBorders.chunkLoad(event.getWorld(), event.getChunk().getPos());
     }
 
-    @SubscribeEvent(priority = EventPriority.LOW) public static void chunkUnload(ChunkEvent.Unload event)
-    {
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void chunkUnload(ChunkEvent.Unload event) {
         VisualizeBorders.chunkUnload(event.getWorld(), event.getChunk().getPos());
     }
 
-    @SubscribeEvent public static void keyPressed(InputEvent.KeyInputEvent event)
-    {
-        if (ObjectHolder.SHOW_BORDERS.consumeClick())
-        {
+    @SubscribeEvent
+    public static void keyPressed(InputEvent.KeyInputEvent event) {
+        if (ObjectHolder.SHOW_BORDERS.consumeClick()) {
             VisualizeBorders.bordersKeyPressed();
         }
     }
 
     @SubscribeEvent
-    public static void renderEvent(RenderLevelStageEvent event)
-    {
+    public static void renderEvent(RenderLevelStageEvent event) {
         VisualizeBorders.renderEvent(event);
     }
 
-    @SubscribeEvent(priority = EventPriority.LOW) public static void worldUnload(WorldEvent.Unload event)
-    {
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void worldUnload(WorldEvent.Unload event) {
         VisualizeBorders.worldUnload(event.getWorld());
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void worldLoad(WorldEvent.Load event) {
+        VisualizeBorders.worldLoad(event.getWorld());
     }
 }
