@@ -1,5 +1,6 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import mrp_v2.biomeborderviewer.client.Config;
@@ -78,7 +79,7 @@ public class VisualizeBorders {
     }
 
     public static void renderEvent(RenderLevelStageEvent event) {
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) {
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             if (showingBorders) {
                 renderBorders(event);
             }
@@ -96,15 +97,17 @@ public class VisualizeBorders {
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.disableTexture();
-        RenderSystem.disableBlend();
+        RenderSystem.enableBlend();
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         Vec3 cameraPos = event.getCamera().getPosition();
         biomeBorderData.renderBorders(Util.getChunkColumn(horizontalViewRange, verticalViewRange,
                         new Int3((int) Math.floor(cameraPos.x / 16), (int) Math.floor(cameraPos.y / 16), (int) Math.floor(cameraPos.z / 16))),
                 bufferBuilder, event.getCamera().getEntity().getLevel(), event.getCamera().getPosition().x, event.getCamera().getPosition().y, event.getCamera().getPosition().z);
         tesselator.end();
-        RenderSystem.enableBlend();
         RenderSystem.enableTexture();
+        RenderSystem.disableBlend();
+        RenderSystem.defaultBlendFunc();
         Minecraft.getInstance().getProfiler().pop();
         poseStack.popPose();
         RenderSystem.applyModelViewMatrix();
