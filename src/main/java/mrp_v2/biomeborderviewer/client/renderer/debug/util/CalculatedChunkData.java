@@ -1,8 +1,8 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug.util;
 
-import com.mojang.math.Vector3f;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 

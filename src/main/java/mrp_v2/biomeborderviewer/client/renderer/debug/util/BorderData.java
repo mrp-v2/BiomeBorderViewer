@@ -1,7 +1,7 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug.util;
 
-import com.mojang.math.Vector3f;
 import net.minecraft.core.Direction;
+import org.joml.Vector3f;
 
 import java.util.Objects;
 

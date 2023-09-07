@@ -1,7 +1,7 @@
 package mrp_v2.biomeborderviewer.client.renderer.debug.util;
 
-import com.mojang.math.Vector3f;
 import net.minecraft.core.Direction;
+import org.joml.Vector3f;
 
 public class Vec3fUtil {
     public static Vector3f Min(Vector3f a, Vector3f b) {

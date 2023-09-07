@@ -2,16 +2,16 @@ package mrp_v2.biomeborderviewer.client.util;
 
 import mrp_v2.biomeborderviewer.BiomeBorderViewer;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod.EventBusSubscriber(modid = BiomeBorderViewer.ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEventHandler
 {
-    @SubscribeEvent public static void clientSetup(FMLClientSetupEvent event)
+    @SubscribeEvent
+    public static void registerKeybindings(RegisterKeyMappingsEvent event)
     {
-        ClientRegistry.registerKeyBinding(ObjectHolder.SHOW_BORDERS);
+        event.register(ObjectHolder.SHOW_BORDERS);
     }
 }

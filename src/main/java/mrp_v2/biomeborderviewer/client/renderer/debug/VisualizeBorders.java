@@ -10,7 +10,7 @@ import mrp_v2.biomeborderviewer.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.chunk.ChunkStatus;
@@ -19,7 +19,6 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import org.apache.logging.log4j.LogManager;
 
 import java.awt.*;
-import java.util.UUID;
 
 public class VisualizeBorders {
     private static Color COLOR_A;
@@ -59,8 +58,7 @@ public class VisualizeBorders {
         }
         showingBorders = !showingBorders;
         LogManager.getLogger().debug("Show Borders hotkey pressed, showingBorders is now " + showingBorders);
-        Minecraft.getInstance().player
-                .sendMessage(new TextComponent("Showing borders is now " + showingBorders), UUID.randomUUID());
+        Minecraft.getInstance().player.sendSystemMessage(Component.literal("Showing borders is now " + showingBorders));
     }
 
     public static void loadConfigSettings() {
@@ -88,7 +86,6 @@ public class VisualizeBorders {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferBuilder = tesselator.getBuilder();
-        RenderSystem.disableTexture();
         RenderSystem.enableBlend();
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
@@ -97,7 +94,6 @@ public class VisualizeBorders {
                         new Int3((int) Math.floor(cameraPos.x / 16), (int) Math.floor(cameraPos.y / 16), (int) Math.floor(cameraPos.z / 16))),
                 bufferBuilder, event.getCamera().getEntity().getLevel(), event.getCamera().getPosition().x, event.getCamera().getPosition().y, event.getCamera().getPosition().z);
         tesselator.end();
-        RenderSystem.enableTexture();
         RenderSystem.disableBlend();
         RenderSystem.defaultBlendFunc();
         Minecraft.getInstance().getProfiler().pop();
