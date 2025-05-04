@@ -92,7 +92,7 @@ public class VisualizeBorders {
         Vec3 cameraPos = event.getCamera().getPosition();
         biomeBorderData.renderBorders(Util.getChunkColumn(horizontalViewRange, verticalViewRange,
                         new Int3((int) Math.floor(cameraPos.x / 16), (int) Math.floor(cameraPos.y / 16), (int) Math.floor(cameraPos.z / 16))),
-                bufferBuilder, event.getCamera().getEntity().getLevel(), event.getCamera().getPosition().x, event.getCamera().getPosition().y, event.getCamera().getPosition().z);
+                bufferBuilder, event.getCamera().getEntity().level(), event.getCamera().getPosition().x, event.getCamera().getPosition().y, event.getCamera().getPosition().z);
         tesselator.end();
         RenderSystem.disableBlend();
         RenderSystem.defaultBlendFunc();
